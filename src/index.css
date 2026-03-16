@@ -1,0 +1,934 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body, #root {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  font-family: 'Courier New', Courier, monospace;
+}
+
+/* ── App shell ─────────────────────────────────────────────────────────── */
+
+.app {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+}
+
+.app-body {
+  display: flex;
+  flex-direction: row;
+  flex: 1;
+  overflow: hidden;
+  min-height: 0;
+}
+
+/* ── Case files panel (manila folder) ──────────────────────────────────── */
+
+.case-files-panel {
+  width: 250px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: linear-gradient(170deg, #e8d49a 0%, #d4b87a 40%, #c8a96e 100%);
+  border-right: 3px solid #a07840;
+  transition: width 0.22s ease, opacity 0.22s ease, border-width 0.22s ease;
+  position: relative;
+  z-index: 10;
+}
+
+.case-files-panel.closed {
+  width: 0;
+  opacity: 0;
+  border-right-width: 0;
+  pointer-events: none;
+}
+
+.case-files-panel.drag-over .folder-items {
+  background: rgba(90, 50, 10, 0.12);
+  outline: 2px dashed rgba(90, 50, 10, 0.55);
+  outline-offset: -4px;
+}
+
+/* ── Folder tabs (multi-folder navigation) ───────────────────────────── */
+
+.folder-tabs {
+  display: flex;
+  align-items: stretch;
+  background: linear-gradient(180deg, #c89848 0%, #b88838 100%);
+  border-bottom: 2px solid #a07840;
+  flex-shrink: 0;
+  min-height: 34px;
+}
+
+/* The tab list — wraps to multiple rows so all tabs are always visible */
+.folder-tabs-scroll {
+  flex: 1;
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  overflow: visible;
+  padding: 5px 3px 0;
+  gap: 2px;
+  min-width: 0;
+}
+
+.folder-tab-item {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 4px 6px 4px 9px;
+  background: rgba(140, 95, 30, 0.38);
+  border: 1px solid rgba(90, 55, 10, 0.38);
+  border-bottom: none;
+  border-radius: 3px 3px 0 0;
+  cursor: pointer;
+  flex-shrink: 0;
+  max-width: 120px;
+  min-width: 52px;
+  transition: background 0.12s;
+  user-select: none;
+}
+
+.folder-tab-item:hover {
+  background: rgba(190, 145, 55, 0.52);
+}
+
+.folder-tab-item.active {
+  background: linear-gradient(180deg, #f5e298 0%, #e8d080 100%);
+  border-color: rgba(90, 55, 10, 0.5);
+  z-index: 1;
+}
+
+.folder-tab-name {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 9.5px;
+  font-weight: bold;
+  letter-spacing: 0.05em;
+  color: rgba(255, 240, 195, 0.88);
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+  min-width: 0;
+}
+
+.folder-tab-item.active .folder-tab-name {
+  color: #3a1c04;
+}
+
+.folder-tab-rename {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 9.5px;
+  font-weight: bold;
+  color: #3a1c04;
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(90, 55, 10, 0.55);
+  border-radius: 2px;
+  padding: 1px 3px;
+  width: 75px;
+  outline: none;
+}
+
+.folder-tab-del {
+  flex-shrink: 0;
+  width: 13px;
+  height: 13px;
+  background: rgba(0, 0, 0, 0.22);
+  border: none;
+  border-radius: 50%;
+  color: rgba(255, 235, 185, 0.8);
+  font-size: 10px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.12s, background 0.12s;
+  padding: 0;
+}
+
+.folder-tab-item.active .folder-tab-del {
+  color: rgba(90, 55, 10, 0.65);
+}
+
+.folder-tab-item:hover .folder-tab-del {
+  opacity: 1;
+}
+
+.folder-tab-del:hover {
+  background: rgba(200, 30, 30, 0.75) !important;
+  color: #fff !important;
+}
+
+.folder-tab-new {
+  flex-shrink: 0;
+  width: 28px;
+  /* stretches full height of the tab bar, button content centred */
+  align-self: stretch;
+  background: rgba(255, 255, 255, 0.08);
+  border: none;
+  border-left: 1px solid rgba(90, 55, 10, 0.3);
+  color: rgba(255, 240, 195, 0.78);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.12s;
+  padding: 0;
+}
+
+.folder-tab-new:hover {
+  background: rgba(255, 255, 255, 0.22);
+  color: #fff;
+}
+
+/* Add-files button area */
+.folder-header {
+  padding: 8px 10px 6px;
+  border-bottom: 1px dashed rgba(90, 50, 10, 0.3);
+  flex-shrink: 0;
+}
+
+.folder-add-btn {
+  width: 100%;
+  padding: 6px 8px;
+  background: rgba(90, 50, 10, 0.1);
+  border: 1px dashed rgba(90, 50, 10, 0.4);
+  border-radius: 3px;
+  color: #5a3a10;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 11px;
+  cursor: pointer;
+  text-align: center;
+  transition: background 0.14s;
+  white-space: nowrap;
+}
+
+.folder-add-btn:hover {
+  background: rgba(90, 50, 10, 0.22);
+}
+
+/* Scrollable item list */
+.folder-items {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 8px 8px 12px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(90, 50, 10, 0.3) transparent;
+  transition: background 0.15s;
+}
+
+/* Empty state hint */
+.folder-empty {
+  text-align: center;
+  color: rgba(90, 50, 10, 0.5);
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 11px;
+  line-height: 1.9;
+  padding: 24px 10px;
+}
+
+/* Individual folder items */
+.folder-item {
+  position: relative;
+  background: rgba(255, 255, 255, 0.28);
+  border: 1px solid rgba(90, 50, 10, 0.18);
+  border-radius: 2px;
+  margin-bottom: 8px;
+  padding: 5px;
+  cursor: grab;
+  transition: background 0.12s, box-shadow 0.12s;
+  overflow: hidden;
+}
+
+.folder-item:hover {
+  background: rgba(255, 255, 255, 0.45);
+  box-shadow: 0 2px 7px rgba(0, 0, 0, 0.22);
+}
+
+.folder-item:active {
+  cursor: grabbing;
+}
+
+.folder-item-thumb {
+  width: 100%;
+  max-height: 120px;
+  object-fit: contain;
+  display: block;
+  background: rgba(255, 255, 255, 0.55);
+  border-radius: 1px;
+  cursor: zoom-in;
+  transition: opacity 0.12s;
+}
+
+.folder-item-thumb:hover {
+  opacity: 0.82;
+}
+
+.folder-item-pdf-thumb {
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.55);
+  font-size: 34px;
+  border-radius: 1px;
+  cursor: zoom-in;
+  transition: background 0.12s;
+}
+
+.folder-item-pdf-thumb:hover {
+  background: rgba(255, 255, 255, 0.78);
+}
+
+.folder-item-label {
+  display: block;
+  margin-top: 4px;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 10px;
+  color: #4a2c08;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: text;
+  user-select: none;
+}
+
+.folder-item-rename {
+  display: block;
+  width: 100%;
+  margin-top: 4px;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 10px;
+  color: #4a2c08;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(90, 50, 10, 0.5);
+  border-radius: 2px;
+  padding: 1px 4px;
+  outline: none;
+}
+
+.folder-item-del {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  width: 16px;
+  height: 16px;
+  background: rgba(0, 0, 0, 0.28);
+  border: none;
+  border-radius: 50%;
+  color: #fff;
+  font-size: 11px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.15s, background 0.12s;
+  z-index: 5;
+}
+
+.folder-item:hover .folder-item-del {
+  opacity: 1;
+}
+
+.folder-item-del:hover {
+  background: rgba(200, 30, 30, 0.88) !important;
+}
+
+/* Bottom binding strip */
+.folder-footer {
+  height: 10px;
+  background: linear-gradient(0deg, #8a6428 0%, #c8a96e 100%);
+  border-top: 1px solid #9a7438;
+  flex-shrink: 0;
+}
+
+/* Toolbar active state for folder button */
+.toolbar-btn.folder-active {
+  background: #2a2010;
+  border-color: #c8a058;
+  color: #e8c070;
+}
+
+
+/* ── Toolbar ───────────────────────────────────────────────────────────── */
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 16px;
+  height: 46px;
+  background: #1a1a1e;
+  border-bottom: 2px solid #2e2e34;
+  flex-shrink: 0;
+  z-index: 2000;
+}
+
+.toolbar-logo {
+  font-size: 14px;
+  font-weight: bold;
+  color: #d4a84b;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  margin-right: 4px;
+}
+
+.toolbar-sep {
+  width: 1px;
+  height: 22px;
+  background: #3a3a40;
+  flex-shrink: 0;
+}
+
+.toolbar-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 13px;
+  background: #252528;
+  border: 1px solid #484850;
+  border-radius: 4px;
+  color: #cccccc;
+  font-family: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.12s, border-color 0.12s;
+}
+
+.toolbar-btn:hover {
+  background: #333338;
+  border-color: #787880;
+  color: #fff;
+}
+
+.toolbar-btn.danger {
+  color: #ff7070;
+  border-color: #4a3030;
+}
+
+.toolbar-btn.danger:hover {
+  background: #3a2020;
+  border-color: #8a4040;
+}
+
+.toolbar-btn.active {
+  background: #3a1a1a;
+  border-color: #c41e1e;
+  color: #ff7070;
+}
+
+.connect-hint {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 14px;
+  background: rgba(196, 30, 30, 0.12);
+  border: 1px solid rgba(196, 30, 30, 0.45);
+  border-radius: 4px;
+  color: #ff9090;
+  font-size: 12px;
+  animation: pulse-border 1.6s ease-in-out infinite;
+}
+
+@keyframes pulse-border {
+  0%, 100% { border-color: rgba(196, 30, 30, 0.4); }
+  50%       { border-color: rgba(196, 30, 30, 0.85); }
+}
+
+/* ── Zoom controls ─────────────────────────────────────────────────────── */
+
+.zoom-controls {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.zoom-btn {
+  padding: 4px 9px;
+  font-size: 14px;
+  line-height: 1;
+  min-width: 28px;
+}
+
+.zoom-pct {
+  padding: 4px 8px;
+  background: #252528;
+  border: 1px solid #484850;
+  border-radius: 4px;
+  color: #aaa;
+  font-family: inherit;
+  font-size: 11px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.12s, color 0.12s;
+  min-width: 44px;
+  text-align: center;
+}
+
+.zoom-pct:hover {
+  background: #333338;
+  color: #fff;
+}
+
+/* ── Cork board ────────────────────────────────────────────────────────── */
+
+.board {
+  position: relative;
+  flex: 1;
+  overflow: hidden;
+  background-color: #111009; /* dark wall behind the board */
+  user-select: none;
+  cursor: grab;
+}
+
+/* ── Physical cork board surface (lives in canvas world space) ─────────── */
+
+.board-surface {
+  position: absolute;
+  left: 0;
+  top: 0;
+  /* cork texture */
+  background-color: #b8874a;
+  background-image:
+    radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,0.28) 100%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='320'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.72' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0.6'/%3E%3C/filter%3E%3Crect width='320' height='320' filter='url(%23n)' opacity='0.28'/%3E%3C/svg%3E");
+  /* metal frame */
+  border: 20px solid transparent;
+  border-image: linear-gradient(150deg, #e8e8e8 0%, #787878 30%, #d8d8d8 50%, #585858 75%, #c4c4c4 100%) 1;
+  /* shadow on the wall */
+  box-shadow:
+    0 16px 60px rgba(0,0,0,0.85),
+    0 4px 16px rgba(0,0,0,0.6),
+    inset 0 0 24px rgba(0,0,0,0.25);
+  pointer-events: none;
+}
+
+.board.mode-connect,
+.board.mode-string {
+  cursor: crosshair;
+}
+
+/* ── Board canvas (zoom/pan container) ─────────────────────────────────── */
+
+.board-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: 0 0;
+  will-change: transform;
+}
+
+/* ── String SVG layer ──────────────────────────────────────────────────── */
+
+.string-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 50;
+  /* pointer-events: none on the SVG so it doesn't block the board/items,
+     but child paths with pointer-events: stroke remain interactive */
+  pointer-events: none;
+  overflow: visible;
+}
+
+/* ── Shared board-item styles ──────────────────────────────────────────── */
+
+.board-item {
+  position: absolute;
+  cursor: grab;
+  user-select: none;
+  /* no explicit z-index – DOM order decides stacking; dragged item is moved
+     to end of array so it renders on top */
+}
+
+.board-item:active {
+  cursor: grabbing;
+}
+
+/* source of an active connection */
+.board-item.is-source {
+  outline: 2px solid #c41e1e;
+  outline-offset: 4px;
+}
+
+/* other items while connect mode is on */
+.mode-connect .board-item:not(.is-source) {
+  cursor: crosshair;
+}
+
+.mode-connect .board-item:not(.is-source):hover {
+  outline: 1px dashed rgba(196, 30, 30, 0.55);
+  outline-offset: 2px;
+}
+
+/* ── Pushpin button ────────────────────────────────────────────────────── */
+
+.pin-btn {
+  position: absolute;
+  top: -16px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 22px;
+  height: 28px;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  z-index: 20;
+  filter: drop-shadow(0 2px 2px rgba(0,0,0,0.45));
+  transition: filter 0.1s, transform 0.1s;
+}
+
+.pin-btn:hover {
+  filter: drop-shadow(0 3px 4px rgba(0,0,0,0.6)) brightness(1.25);
+  transform: translateX(-50%) scale(1.18);
+}
+
+.mode-connect .pin-btn {
+  animation: pin-wiggle 1.8s ease-in-out infinite;
+}
+
+@keyframes pin-wiggle {
+  0%, 100% { transform: translateX(-50%) rotate(0deg); }
+  25%       { transform: translateX(-50%) rotate(-9deg); }
+  75%       { transform: translateX(-50%) rotate(9deg); }
+}
+
+/* ── Delete button ─────────────────────────────────────────────────────── */
+
+.del-btn {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 18px;
+  height: 18px;
+  background: rgba(0,0,0,0.3);
+  border: none;
+  border-radius: 50%;
+  color: #fff;
+  font-size: 12px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.15s, background 0.12s;
+  z-index: 21;
+}
+
+.board-item:hover .del-btn {
+  opacity: 1;
+}
+
+.del-btn:hover {
+  background: rgba(200, 30, 30, 0.88) !important;
+}
+
+/* ── Sticky note ───────────────────────────────────────────────────────── */
+
+.sticky-note {
+  width: 210px;
+  min-height: 185px;
+  padding: 30px 14px 14px;
+  box-shadow:
+    4px 4px 14px rgba(0,0,0,0.38),
+    1px 1px 4px rgba(0,0,0,0.18),
+    inset 0 -2px 4px rgba(0,0,0,0.06);
+}
+
+/* tape strip at top-center */
+.sticky-note::before {
+  content: '';
+  position: absolute;
+  top: -7px;
+  left: 50%;
+  transform: translateX(-50%) rotate(-0.8deg);
+  width: 58px;
+  height: 18px;
+  background: rgba(225, 215, 175, 0.52);
+  border: 1px solid rgba(190, 180, 140, 0.35);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.14);
+}
+
+/* folded corner bottom-right */
+.sticky-note::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 0 0 20px 20px;
+  border-color: transparent transparent rgba(0,0,0,0.13) transparent;
+}
+
+.sticky-textarea {
+  width: 100%;
+  min-height: 125px;
+  background: transparent;
+  border: none;
+  outline: none;
+  resize: none;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 13px;
+  line-height: 1.55;
+  color: rgba(0,0,0,0.78);
+  cursor: text;
+  overflow: hidden;
+}
+
+.sticky-textarea::placeholder {
+  color: rgba(0,0,0,0.28);
+  font-style: italic;
+}
+
+/* ── Media card (polaroid style) ───────────────────────────────────────── */
+
+.media-card {
+  background: #f8f5f0;
+  padding: 8px 8px 28px;
+  box-shadow:
+    4px 4px 16px rgba(0,0,0,0.42),
+    1px 1px 4px rgba(0,0,0,0.18);
+  width: fit-content;
+}
+
+.media-card img {
+  display: block;
+  max-width: 280px;
+  max-height: 320px;
+  pointer-events: none;
+}
+
+.media-card canvas {
+  display: block;
+  max-width: 280px;
+  max-height: 320px;
+}
+
+.media-caption {
+  position: absolute;
+  bottom: 5px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 10px;
+  color: #777;
+  font-family: 'Courier New', monospace;
+  padding: 0 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pdf-placeholder {
+  width: 200px;
+  height: 240px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: #f0eded;
+  color: #999;
+  font-size: 11px;
+  font-family: 'Courier New', monospace;
+}
+
+.pdf-placeholder .pdf-icon {
+  font-size: 42px;
+  line-height: 1;
+}
+
+/* ── Empty-board hint ──────────────────────────────────────────────────── */
+
+.empty-hint {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  color: rgba(0,0,0,0.32);
+  pointer-events: none;
+  line-height: 2.2;
+  font-size: 14px;
+}
+
+.empty-hint .hint-icon {
+  font-size: 52px;
+  display: block;
+  margin-bottom: 6px;
+  opacity: 0.55;
+}
+
+/* ── File viewer lightbox ──────────────────────────────────────────────── */
+
+.file-viewer-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.84);
+  z-index: 9000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  animation: fv-fade-in 0.15s ease;
+}
+
+@keyframes fv-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.file-viewer {
+  background: #1c1a15;
+  border: 1px solid #4a3e28;
+  border-radius: 4px;
+  box-shadow:
+    0 32px 100px rgba(0, 0, 0, 0.95),
+    0 0 0 1px rgba(200, 168, 80, 0.12);
+  display: flex;
+  flex-direction: column;
+  max-width: min(760px, 92vw);
+  max-height: 88vh;
+  width: 100%;
+  overflow: hidden;
+  animation: fv-slide-in 0.18s ease;
+}
+
+@keyframes fv-slide-in {
+  from { transform: scale(0.96) translateY(8px); opacity: 0; }
+  to   { transform: scale(1)    translateY(0);   opacity: 1; }
+}
+
+.file-viewer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: #252010;
+  border-bottom: 1px solid #4a3e28;
+  flex-shrink: 0;
+}
+
+.file-viewer-title {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 12px;
+  font-weight: bold;
+  color: #d4a84b;
+  letter-spacing: 0.08em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  margin-right: 12px;
+}
+
+.file-viewer-close {
+  width: 24px;
+  height: 24px;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 50%;
+  color: #aaa;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+
+.file-viewer-close:hover {
+  background: rgba(200, 30, 30, 0.75);
+  border-color: rgba(200, 30, 30, 0.8);
+  color: #fff;
+}
+
+.file-viewer-body {
+  overflow-y: auto;
+  overflow-x: hidden;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  background: #141210;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(200, 168, 80, 0.25) transparent;
+}
+
+/* Image viewer */
+.file-viewer-img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 2px;
+  box-shadow: 0 6px 32px rgba(0, 0, 0, 0.7);
+}
+
+/* PDF multi-page viewer */
+.file-viewer-pages {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 28px;
+  width: 100%;
+}
+
+.file-viewer-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.file-viewer-page img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.65);
+  border-radius: 1px;
+}
+
+.file-viewer-page-num {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 10px;
+  color: rgba(200, 168, 80, 0.42);
+  letter-spacing: 0.18em;
+}
+
+.file-viewer-loading {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 12px;
+  color: rgba(200, 168, 80, 0.5);
+  padding: 48px 20px;
+  text-align: center;
+  letter-spacing: 0.06em;
+}
