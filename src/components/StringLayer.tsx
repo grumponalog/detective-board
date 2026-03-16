@@ -62,8 +62,7 @@ export function StringLayer({
               fill="none"
               style={{ pointerEvents: 'stroke', cursor: 'pointer' }}
               onClick={e => { e.stopPropagation(); onRemoveConnection(conn.id) }}
-              title="Click to remove"
-            />
+            ><title>Click to remove</title></path>
             <path
               d={d}
               stroke="#c41e1e"
@@ -90,8 +89,7 @@ export function StringLayer({
               fill="none"
               style={{ pointerEvents: 'stroke', cursor: 'pointer' }}
               onClick={e => { e.stopPropagation(); onRemoveFreeString(fs.id) }}
-              title="Click to remove"
-            />
+            ><title>Click to remove</title></path>
             <path
               d={d}
               stroke="#c41e1e"
